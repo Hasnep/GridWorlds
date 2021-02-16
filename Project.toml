@@ -1,0 +1,5 @@
+name = "CliffWorlds"
+
+[deps]
+Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
+Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
