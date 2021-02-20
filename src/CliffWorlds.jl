@@ -1,56 +1,57 @@
 module CliffWorlds
 
-export CliffWorld, plot, size, state_action_state, Position, actions, state_transitions
+export CliffWorld, Agent, plot,Position,actions,take_action
 
 using Luxor
 
 Position = Tuple{Int,Int}
 
-const actions = Dict(:up => (0, 1), :down => (0, -1), :left => (-1, 0), :right => (1, 0))
-
-mutable struct CliffWorld
-    state::Position
+Base.@kwdef struct CliffWorld
     start::Position
     goal::Position
     cliffs::Matrix{Bool}
-    step_penalty::Real
-    cliff_penalty::Real
-
-    function CliffWorld(start, goal; cliffs, step_penalty, cliff_penalty)
-        return new(start, start, goal, cliffs, step_penalty, cliff_penalty)
-    end
+    step_reward::Real
+    cliff_reward::Real
 end
 
-import Base.size
-size(cliff_world::CliffWorld) = Base.size(cliff_world.cliffs)
+import Base.size # TODO: Do I need this?
+Base.size(cliff_world::CliffWorld) = Base.size(cliff_world.cliffs)
+
+
+const transitions = Dict(:up => (0, 1), :down => (0, -1), :left => (-1, 0), :right => (1, 0))
+const actions = keys(transitions)
+
+struct Agent
+    position::Position
+    reward::Real
+end
 
 """
-Calculate the new state and reward for a given state and action.
+Return the agent's new state after taking an action.
 """
-function state_action_state(cliff_world, state::Position, action::Symbol)::NamedTuple{(:state, :reward),Tuple{Position,Number}}
-    new_state = state .+ actions[action]
-    reward = cliff_world.step_penalty
-    if all((1, 1) .<= new_state .<= size(cliff_world))
-        if cliff_world.cliffs[new_state]
-            new_state = cliff_world.start
-            reward = cliff_world.cliff_penalty
+function take_action(cliff_world::CliffWorld, agent::Agent, action::Symbol)::Agent
+    new_position::Position = agent.position .+ transitions[action]
+    # Assume the reward is going to change because we take a step
+    reward_δ::Real = cliff_world.step_reward
+    # Check if the agent is still in bounds
+    if all((1, 1) .<= new_position .<= size(cliff_world))
+        # Check if the new position is a cliff
+        if cliff_world.cliffs[new_position...]
+            # When the agent falls off the cliff, reset their position
+            new_position = cliff_world.start
+            reward_δ = cliff_world.cliff_reward             
         end
     else
-        new_state = state
+        # If the agent went out of bounds then the agent doesn't move
+        new_position = agent.position
     end
-    return (state = new_state, reward = reward)
+    return Agent(new_position,          agent.reward + reward_δ) 
 end
-
-"""
-Calculate the new state and reward for each action taken at a state.
-"""
-state_transitions(cliff_world, state)::Dict{Symbol,NamedTuple{(:state, :reward),Tuple{Position,Number}}} =
-    Dict(keys(actions) .=> state_action_state.(Ref(cliff_world), Ref(state), keys(actions)))
 
 """
 Plot a cliffworld.
 """
-function plot(cliff_world::CliffWorld, path; filepath, scale_by = 50)
+function plot(cliff_world::CliffWorld, agent::Agent, path; filepath, scale_by = 50)
     grid_width, grid_height = size(cliff_world)
 
     Drawing(grid_height * scale_by, grid_width * scale_by, filepath)
@@ -67,6 +68,10 @@ function plot(cliff_world::CliffWorld, path; filepath, scale_by = 50)
         sethue(stroke_colour)
         box(Point(y, x), 1, 1, :stroke)
     end
+    
+    # Draw agent
+    sethue("purple")
+    circle(agent.position..., 0.5, :fill)
 
     # Draw path
     sethue("orange")
@@ -80,6 +85,6 @@ function plot(cliff_world::CliffWorld, path; filepath, scale_by = 50)
     finish()
 end
 
-plot(cliff_world::CliffWorld; kwargs...) = plot(cliff_world, []; kwargs...)
+plot(cliff_world::CliffWorld,agent::Agent; kwargs...) = plot(cliff_world, agent, []; kwargs...)
 
 end # module
