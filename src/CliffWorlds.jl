@@ -51,27 +51,44 @@ end
 """
 Plot a cliffworld.
 """
-function plot(cliff_world::CliffWorld, agent::Agent, path; filepath, scale_by = 50)
+function plot(cliff_world::CliffWorld;agent::Agent = nothing, path = [],info = nothing, filepath, scale_by = 50)
     grid_width, grid_height = size(cliff_world)
 
-    Drawing(grid_height * scale_by, grid_width * scale_by, filepath)
+    Drawing(grid_width * scale_by, grid_height * scale_by,  filepath)
 
     translate(-scale_by / 2, -scale_by / 2)
     scale(scale_by)
 
     stroke_colour = "black"
     setline(1)
+    fontsize(0.2)
 
     for x in 1:grid_width, y in 1:grid_height
-        sethue(cliff_world.cliffs[x, y] ? "red" : "lightblue")
-        box(Point(y, x), 1, 1, :fill)
+        if cliff_world.cliffs[x, y]
+            sethue("red")
+        elseif (x, y) == cliff_world.start
+            sethue("darkblue")
+       elseif (x, y) == cliff_world.goal
+          sethue("green")
+        else
+            sethue("lightblue")
+        end
+        box(Point(x, y), 1, 1, :fill)
         sethue(stroke_colour)
-        box(Point(y, x), 1, 1, :stroke)
+        box(Point(x, y), 1, 1, :stroke)
     end
     
+    if !isnothing(info)
+        for x in 1:grid_width, y in 1:grid_height
+            text(info[x,y], x, y;halign = :center)
+        end
+    end
+
     # Draw agent
-    sethue("purple")
-    circle(agent.position..., 0.5, :fill)
+    if !isnothing(agent)
+        sethue("purple")
+        circle(agent.position..., 0.5, :fill)
+    end
 
     # Draw path
     sethue("orange")
@@ -84,7 +101,5 @@ function plot(cliff_world::CliffWorld, agent::Agent, path; filepath, scale_by = 
 
     finish()
 end
-
-plot(cliff_world::CliffWorld,agent::Agent; kwargs...) = plot(cliff_world, agent, []; kwargs...)
 
 end # module
