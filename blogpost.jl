@@ -16,7 +16,7 @@ cliffs = [
     0 0 0 0 0 0
     0 1 1 1 1 0
 ]
-world = CliffWorld(start = (1, 4), goal = (6, 4); cliffs = cliffs, step_reward = -1, cliff_reward = -100)
+world = CliffWorld(start = (1, 4), goal = (6, 4); cliffs = cliffs', step_reward = -1, cliff_reward = -100)
 
 # Create an agent at the start position
 
