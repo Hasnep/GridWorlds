@@ -56,7 +56,38 @@ end
 # The probability of selecting each action next to the cliff is:
 
 agent = Agent((3, 3), 0)
-ϵ_greedy(world,agent , 0.1)
+ϵ_greedy(world,agent ;ϵ = 0.1)
+
+# Calculate the optimal path using IPE
+# Use the bellman equation
+# $$ V^{(t+1)}(S*t) \leftarrow \sum*{S*{t+1}, R*{t+1}} p\left[S_{t+1},R_{t+1}|S_t,\pi(S_t)\right] \left(R*{t+1}+\gamma V^{t}(S*{t+1})\right) $$
+
+function ipe_step(V, cliff_world, policy;γ = 1)
+    world_width, world_height = size(cliff_world)
+    V_prime = zeros(world_width, world_height)
+    for x in 1:world_width, y in 1:world_height
+        if (x, y) != cliff_world.goal
+            hypothetical_states::Dict{Symbol,Agent} = Dict(actions .=> take_action.(Ref(cliff_world), Ref(Agent((x, y), 0)), actions))
+            hypothetical_rewards = Dict([action => state.reward for (action, state) in hypothetical_states])
+            action_probabilities = policy(cliff_world, agent)
+            V_prime[x,y] =   sum(action_probabilities[action] * (hypothetical_rewards[action] + γ   * V[x,y]) for action in actions)
+        end
+    end
+    return V_prime
+end
+
+policy_exploit(w, a) = ϵ_greedy(w, a; ϵ = 0)
+
+# V = zeros(size(world)...)
+# for iteration in 1:10
+#     V_prime =    ipe_step(V, world, policy_exploit)
+#     V .= V_prime
+#     plot(world; info = V, filepath = joinpath(pwd(), "build", "images", "ipe_iteration_$iteration.svg"))
+# end
+
+# ![A simple cliffworld with a path](images/ipe_iteration_1.svg)
+# ![A simple cliffworld with a path](images/ipe_iteration_10.svg)
+
 
 # Draw a line
 
