@@ -34,7 +34,7 @@ plot(world,agent; filepath = joinpath(pwd(), "images", "world.svg"))
 # To encourage exploration, the ϵ-greedy policy will select a random action with probability ϵ (explore).
 # Otherwise, it will select the optimal action(s) (exploit).
 
-function ϵ_greedy(cliff_world::CliffWorld, agent::Agent, ϵ::Real)
+function ϵ_greedy(cliff_world::CliffWorld, agent::Agent; ϵ::Real)
     @assert 0 <= ϵ <= 1 "ϵ is a probability, so it must be between 0 and 1"
     ## Equally divide the explore probability
     output = Dict(actions .=> ϵ / length(actions))
@@ -51,7 +51,7 @@ end
 
 # The probability of selecting each action at the start position is:
 
-ϵ_greedy(world,agent , 0.1)
+ϵ_greedy(world,agent ; ϵ = 0.1)
 
 # The probability of selecting each action next to the cliff is:
 
