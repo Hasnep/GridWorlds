@@ -39,7 +39,7 @@ function ϵ_greedy(cliff_world::CliffWorld, agent::Agent; ϵ::Real)
     ## Equally divide the explore probability
     output = Dict(actions .=> ϵ / length(actions))
     ## Calculate which choice(s) are exploit
-    hypothetical_states::Dict{Symbol,Agent} = Dict(actions .=> take_action.(Ref(cliff_world), Ref(agent), actions))
+    hypothetical_states::Dict{Symbol, Agent} = Dict(actions .=> take_action.(Ref(cliff_world), Ref(agent), actions))
     maximum_reward = maximum(getfield.(values(hypothetical_states), :reward))
     optimal_actions = filter(s -> s.second.reward == maximum_reward, hypothetical_states) |> keys
     ## Split the exploit probability between the optimal actions
@@ -51,26 +51,28 @@ end
 
 # The probability of selecting each action at the start position is:
 
-ϵ_greedy(world,agent ; ϵ = 0.1)
+ϵ_greedy(world, agent; ϵ = 0.1)
 
 # The probability of selecting each action next to the cliff is:
 
 agent = Agent((3, 3), 0)
-ϵ_greedy(world,agent ;ϵ = 0.1)
+ϵ_greedy(world, agent; ϵ = 0.1)
 
 # Calculate the optimal path using IPE
 # Use the bellman equation
 # $$ V^{(t+1)}(S*t) \leftarrow \sum*{S*{t+1}, R*{t+1}} p\left[S_{t+1},R_{t+1}|S_t,\pi(S_t)\right] \left(R*{t+1}+\gamma V^{t}(S*{t+1})\right) $$
 
-function ipe_step(V, cliff_world, policy;γ = 1)
+function ipe_step(V, cliff_world, policy; γ = 1)
     world_width, world_height = size(cliff_world)
     V_prime = zeros(world_width, world_height)
     for x in 1:world_width, y in 1:world_height
         if (x, y) != cliff_world.goal
-            hypothetical_states::Dict{Symbol,Agent} = Dict(actions .=> take_action.(Ref(cliff_world), Ref(Agent((x, y), 0)), actions))
+            hypothetical_states::Dict{Symbol, Agent} =
+                Dict(actions .=> take_action.(Ref(cliff_world), Ref(Agent((x, y), 0)), actions))
             hypothetical_rewards = Dict([action => state.reward for (action, state) in hypothetical_states])
             action_probabilities = policy(cliff_world, agent)
-            V_prime[x,y] =   sum(action_probabilities[action] * (hypothetical_rewards[action] + γ   * V[x,y]) for action in actions)
+            V_prime[x, y] =
+                sum(action_probabilities[action] * (hypothetical_rewards[action] + γ * V[x, y]) for action in actions)
         end
     end
     return V_prime

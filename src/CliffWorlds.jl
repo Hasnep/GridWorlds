@@ -1,10 +1,10 @@
 module CliffWorlds
 
-export CliffWorld, Agent, plot,Position,actions,take_action
+export CliffWorld, Agent, plot, Position, actions, take_action
 
 using Luxor
 
-Position = Tuple{Int,Int}
+Position = Tuple{Int, Int}
 
 Base.@kwdef struct CliffWorld
     start::Position
@@ -39,22 +39,22 @@ function take_action(cliff_world::CliffWorld, agent::Agent, action::Symbol)::Age
         if cliff_world.cliffs[new_position...]
             # When the agent falls off the cliff, reset their position
             new_position = cliff_world.start
-            reward_δ = cliff_world.cliff_reward             
+            reward_δ = cliff_world.cliff_reward
         end
     else
         # If the agent went out of bounds then the agent doesn't move
         new_position = agent.position
     end
-    return Agent(new_position,          agent.reward + reward_δ) 
+    return Agent(new_position, agent.reward + reward_δ)
 end
 
 """
 Plot a cliffworld.
 """
-function plot(cliff_world::CliffWorld;agent::Agent = nothing, path = [],info = nothing, filepath, scale_by = 50)
+function plot(cliff_world::CliffWorld; agent::Agent = nothing, path = [], info = nothing, filepath, scale_by = 50)
     grid_width, grid_height = size(cliff_world)
 
-    Drawing(grid_width * scale_by, grid_height * scale_by,  filepath)
+    Drawing(grid_width * scale_by, grid_height * scale_by, filepath)
 
     translate(-scale_by / 2, -scale_by / 2)
     scale(scale_by)
@@ -68,8 +68,8 @@ function plot(cliff_world::CliffWorld;agent::Agent = nothing, path = [],info = n
             sethue("red")
         elseif (x, y) == cliff_world.start
             sethue("darkblue")
-       elseif (x, y) == cliff_world.goal
-          sethue("green")
+        elseif (x, y) == cliff_world.goal
+            sethue("green")
         else
             sethue("lightblue")
         end
@@ -77,10 +77,10 @@ function plot(cliff_world::CliffWorld;agent::Agent = nothing, path = [],info = n
         sethue(stroke_colour)
         box(Point(x, y), 1, 1, :stroke)
     end
-    
+
     if !isnothing(info)
         for x in 1:grid_width, y in 1:grid_height
-            text(info[x,y], x, y;halign = :center)
+            text(info[x, y], x, y; halign = :center)
         end
     end
 
