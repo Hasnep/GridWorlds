@@ -24,7 +24,7 @@ agent = Agent(world.start, 0)
 
 # Draw the agent in the world
 
-plot(world,agent; filepath = joinpath(pwd(), "images", "world.svg"))
+plot(world; agent = agent, filepath = joinpath(pwd(), "build", "images", "world.svg"))
 
 
 # ![A simple caveworld](images/world.svg)
@@ -92,6 +92,6 @@ policy_exploit(w, a) = ϵ_greedy(w, a; ϵ = 0)
 # Draw a line
 
 path = [(1, 1), (1, 2), (2, 2)]
-plot(world, agent, path, filepath = joinpath(pwd(), "images", "world_path.svg"))
+plot(world; agent = agent, path = path, filepath = joinpath(pwd(), "build", "images", "world_path.svg"))
 
 # ![A simple cliffworld with a path](images/world_path.svg)
