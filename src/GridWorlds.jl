@@ -1,12 +1,12 @@
-module CliffWorlds
+module GridWorlds
 
-export CliffWorld, Agent, plot, Position, actions, take_action
+export GridWorld, Agent, plot, Position, actions, take_action
 
 using Luxor
 
 Position = Tuple{Int, Int}
 
-Base.@kwdef struct CliffWorld
+Base.@kwdef struct GridWorld
     start::Position
     goal::Position
     cliffs::Matrix{Bool}
@@ -15,7 +15,7 @@ Base.@kwdef struct CliffWorld
 end
 
 import Base.size # TODO: Do I need this?
-Base.size(cliff_world::CliffWorld) = Base.size(cliff_world.cliffs)
+Base.size(gridworld::GridWorld) = Base.size(gridworld.cliffs)
 
 
 const transitions = Dict(:up => (0, 1), :down => (0, -1), :left => (-1, 0), :right => (1, 0))
@@ -29,17 +29,17 @@ end
 """
 Return the agent's new state after taking an action.
 """
-function take_action(cliff_world::CliffWorld, agent::Agent, action::Symbol)::Agent
+function take_action(gridworld::GridWorld, agent::Agent, action::Symbol)::Agent
     new_position::Position = agent.position .+ transitions[action]
     # Assume the reward is going to change because we take a step
-    reward_δ::Real = cliff_world.step_reward
+    reward_δ::Real = gridworld.step_reward
     # Check if the agent is still in bounds
-    if all((1, 1) .<= new_position .<= size(cliff_world))
+    if all((1, 1) .<= new_position .<= size(gridworld))
         # Check if the new position is a cliff
-        if cliff_world.cliffs[new_position...]
+        if gridworld.cliffs[new_position...]
             # When the agent falls off the cliff, reset their position
-            new_position = cliff_world.start
-            reward_δ = cliff_world.cliff_reward
+            new_position = gridworld.start
+            reward_δ = gridworld.cliff_reward
         end
     else
         # If the agent went out of bounds then the agent doesn't move
@@ -49,10 +49,10 @@ function take_action(cliff_world::CliffWorld, agent::Agent, action::Symbol)::Age
 end
 
 """
-Plot a cliffworld.
+Plot a gridworld.
 """
-function plot(cliff_world::CliffWorld; agent::Agent = nothing, path = [], info = nothing, filepath, scale_by = 50)
-    grid_width, grid_height = size(cliff_world)
+function plot(gridworld::GridWorld; agent::Agent = nothing, path = [], info = nothing, filepath, scale_by = 50)
+    grid_width, grid_height = size(gridworld)
 
     Drawing(grid_width * scale_by, grid_height * scale_by, filepath)
 
@@ -64,11 +64,11 @@ function plot(cliff_world::CliffWorld; agent::Agent = nothing, path = [], info =
     fontsize(0.2)
 
     for x in 1:grid_width, y in 1:grid_height
-        if cliff_world.cliffs[x, y]
+        if gridworld.cliffs[x, y]
             sethue("red")
-        elseif (x, y) == cliff_world.start
+        elseif (x, y) == gridworld.start
             sethue("darkblue")
-        elseif (x, y) == cliff_world.goal
+        elseif (x, y) == gridworld.goal
             sethue("green")
         else
             sethue("lightblue")
